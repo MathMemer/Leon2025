@@ -1,0 +1,11 @@
+---
+layout: post
+title: Mini Project #1
+description: First Mini Project assigned in the first week of school due August 30th 2024
+categories: [Collaboration]
+courses: { csse: {week: 3}, csp: {week: 3}, csa: {week: 2} }
+menu: nav/pair_programming.html
+permalink: /pair/showcase
+type: collab
+comments: true
+---
