@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Snake Game with Power-Ups</title>
+  <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: white;
+    font-family: Arial, sans-serif;
+  }
+  canvas {
+    border: 1px solid white;
+  }
+  #instructions {
+    margin-bottom: 10px;
+  }
+  </style>
+</head>
+<body>
+  <div id="instructions">
+    <p>Red = Apple (Food)</p>
+    <p>Yellow = Multiple Food Spawn</p>
+    <p>Blue = Speed Boost (Lasts 5 seconds)</p>
+  </div>
+<canvas width="400" height="400" id="game"></canvas>
+<script>
+var canvas = document.getElementById('game');
+var context = canvas.getContext('2d');
+
+var grid = 16;
+var count = 0;
+var speed = 4; // Default speed
+var foodCount = 1; // Tracks how many food items are active
+
+var snake = {
+  x: 160,
+  y: 160,
+  dx: grid,
+  dy: 0,
+  cells: [],
+  maxCells: 4
+};
+
+var apple = { x: 320, y: 320 };
+var multipleFood = { x: getRandomInt(0, 25) * grid, y: getRandomInt(0, 25) * grid };
+var speedBoost = { x: getRandomInt(0, 25) * grid, y: getRandomInt(0, 25) * grid };
+
+var extraApples = []; // Array to hold extra apples
+
+// Random number generator for grid positioning
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+// Game loop
+function loop() {
+  requestAnimationFrame(loop);
+
+  // Slow game loop according to the current speed
+  if (++count < speed) {
+    return;
+  }
+
+  count = 0;
+  context.clearRect(0,0,canvas.width,canvas.height);
+
+  // Move snake by its velocity
+  snake.x += snake.dx;
+  snake.y += snake.dy;
+
+  // Wrap snake position horizontally and vertically on edge of screen
+  if (snake.x < 0) snake.x = canvas.width - grid;
+  else if (snake.x >= canvas.width) snake.x = 0;
+  if (snake.y < 0) snake.y = canvas.height - grid;
+  else if (snake.y >= canvas.height) snake.y = 0;
+
+  // Keep track of snake's body
+  snake.cells.unshift({x: snake.x, y: snake.y});
+  if (snake.cells.length > snake.maxCells) snake.cells.pop();
+
+  // Draw apple
+  context.fillStyle = 'red';
+  context.fillRect(apple.x, apple.y, grid-1, grid-1);
+
+  // Draw multiple food power-up
+  context.fillStyle = 'yellow';
+  context.fillRect(multipleFood.x, multipleFood.y, grid-1, grid-1);
+
+  // Draw speed boost power-up
+  context.fillStyle = 'blue';
+  context.fillRect(speedBoost.x, speedBoost.y, grid-1, grid-1);
+
+  // Draw extra apples if any
+  extraApples.forEach(function(apple) {
+    context.fillStyle = 'red';
+    context.fillRect(apple.x, apple.y, grid-1, grid-1);
+  });
+
+  // Draw snake
+  context.fillStyle = 'green';
+  snake.cells.forEach(function(cell, index) {
+    context.fillRect(cell.x, cell.y, grid-1, grid-1);
+
+    // Snake eats apple
+    if (cell.x === apple.x && cell.y === apple.y) {
+      snake.maxCells++;
+      apple.x = getRandomInt(0, 25) * grid;
+      apple.y = getRandomInt(0, 25) * grid;
+    }
+
+    // Snake eats multiple food power-up
+    if (cell.x === multipleFood.x && cell.y === multipleFood.y) {
+      for (let i = 0; i < 3; i++) {
+        extraApples.push({
+          x: getRandomInt(0, 25) * grid,
+          y: getRandomInt(0, 25) * grid
+        });
+      }
+      multipleFood.x = getRandomInt(0, 25) * grid;
+      multipleFood.y = getRandomInt(0, 25) * grid;
+    }
+
+    // Snake eats speed boost
+    if (cell.x === speedBoost.x && cell.y === speedBoost.y) {
+      speed = 2; // Increase speed
+      setTimeout(() => { speed = 4; }, 5000); // Speed boost lasts 5 seconds
+      speedBoost.x = getRandomInt(0, 25) * grid;
+      speedBoost.y = getRandomInt(0, 25) * grid;
+    }
+
+    // Snake eats extra apples
+    extraApples.forEach(function(apple, index) {
+      if (cell.x === apple.x && cell.y === apple.y) {
+        snake.maxCells++;
+        extraApples.splice(index, 1); // Remove eaten apple from the list
+      }
+    });
+
+    // Check collision with all cells after this one (snake bites itself)
+    for (var i = index + 1; i < snake.cells.length; i++) {
+      if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+        // Reset game
+        snake.x = 160;
+        snake.y = 160;
+        snake.cells = [];
+        snake.maxCells = 4;
+        snake.dx = grid;
+        snake.dy = 0;
+        foodCount = 1; // Reset food count
+        extraApples = []; // Clear extra apples
+      }
+    }
+  });
+}
+
+// Listen to keyboard events to move the snake
+document.addEventListener('keydown', function(e) {
+  if (e.which === 37 && snake.dx === 0) { snake.dx = -grid; snake.dy = 0; }
+  else if (e.which === 38 && snake.dy === 0) { snake.dy = -grid; snake.dx = 0; }
+  else if (e.which === 39 && snake.dx === 0) { snake.dx = grid; snake.dy = 0; }
+  else if (e.which === 40 && snake.dy === 0) { snake.dy = grid; snake.dx = 0; }
+});
+
+// Start the game
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

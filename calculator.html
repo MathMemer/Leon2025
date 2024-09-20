@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #calculator {
+            width: 300px;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        #result {
+            font-size: 2em;
+            padding: 10px;
+            background-color: #fff;
+            border: none;
+            width: 100%;
+            text-align: right;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .button {
+            width: 70px;
+            height: 50px;
+            font-size: 1.5em;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .operator {
+            background-color: #f78e1e;
+            color: white;
+        }
+        .equal {
+            background-color: #4caf50;
+            color: white;
+        }
+        #history {
+            background-color: white;
+            margin-top: 20px;
+            width: 300px;
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        #history p {
+            text-align: left;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="calculator">
+        <input type="text" id="result" disabled>
+        <div>
+            <button class="button" onclick="appendNumber('7')">7</button>
+            <button class="button" onclick="appendNumber('8')">8</button>
+            <button class="button" onclick="appendNumber('9')">9</button>
+            <button class="button operator" onclick="chooseOperator('/')">÷</button>
+        </div>
+        <div>
+            <button class="button" onclick="appendNumber('4')">4</button>
+            <button class="button" onclick="appendNumber('5')">5</button>
+            <button class="button" onclick="appendNumber('6')">6</button>
+            <button class="button operator" onclick="chooseOperator('*')">×</button>
+        </div>
+        <div>
+            <button class="button" onclick="appendNumber('1')">1</button>
+            <button class="button" onclick="appendNumber('2')">2</button>
+            <button class="button" onclick="appendNumber('3')">3</button>
+            <button class="button operator" onclick="chooseOperator('-')">−</button>
+        </div>
+        <div>
+            <button class="button" onclick="appendNumber('0')">0</button>
+            <button class="button operator" onclick="chooseOperator('+')">+</button>
+            <button class="button operator" onclick="chooseOperator('^')">^ (Exp)</button>
+            <button class="button equal" onclick="compute()">=</button>
+        </div>
+        <div>
+            <button class="button operator" onclick="computeSquareRoot()">√</button>
+            <button class="button operator" onclick="computePercentage()">%</button>
+            <button class="button operator" onclick="negate()">±</button>
+            <button class="button operator" onclick="computeLog()">log</button>
+            <button class="button operator" onclick="computeSine()">sin</button>
+        </div>
+        <div>
+            <button class="button operator" onclick="clearResult()">C</button>
+            <button class="button operator" onclick="deleteLast()">DEL</button>
+        </div>
+    </div>
+
+    <div id="history">
+        <h3>Calculation History</h3>
+    </div>
+
+    <script>
+        let currentInput = '';
+        let previousInput = '';
+        let operator = '';
+        const resultDisplay = document.getElementById('result');
+        const historyDisplay = document.getElementById('history');
+
+        function appendNumber(number) {
+            currentInput += number;
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            resultDisplay.value = currentInput;
+        }
+
+        function chooseOperator(selectedOperator) {
+            if (currentInput === '') return;
+            if (previousInput !== '') compute();
+            operator = selectedOperator;
+            previousInput = currentInput;
+            currentInput = '';
+        }
+
+        function compute() {
+            let result;
+            const prev = parseFloat(previousInput);
+            const curr = parseFloat(currentInput);
+
+            if (isNaN(prev) || isNaN(curr)) return;
+
+            switch (operator) {
+                case '+':
+                    result = prev + curr;
+                    break;
+                case '-':
+                    result = prev - curr;
+                    break;
+                case '*':
+                    result = prev * curr;
+                    break;
+                case '/':
+                    result = prev / curr;
+                    break;
+                case '^':
+                    result = Math.pow(prev, curr);
+                    break;
+                default:
+                    return;
+            }
+
+            currentInput = result;
+            operator = '';
+            previousInput = '';
+
+            addToHistory(prev, operator, curr, result);
+            updateDisplay();
+        }
+
+        function clearResult() {
+            currentInput = '';
+            previousInput = '';
+            operator = '';
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            currentInput = currentInput.slice(0, -1);
+            updateDisplay();
+        }
+
+        function addToHistory(prev, operator, curr, result) {
+            const historyItem = document.createElement('p');
+            historyItem.textContent = `${prev} ${operator} ${curr} = ${result}`;
+            historyDisplay.appendChild(historyItem);
+        }
+
+        // Additional Functions
+
+        function computeSquareRoot() {
+            const value = parseFloat(currentInput);
+            if (isNaN(value)) return;
+            currentInput = Math.sqrt(value).toString();
+            updateDisplay();
+        }
+
+        function computePercentage() {
+            const value = parseFloat(currentInput);
+            if (isNaN(value)) return;
+            currentInput = (value / 100).toString();
+            updateDisplay();
+        }
+
+        function negate() {
+            const value = parseFloat(currentInput);
+            if (isNaN(value)) return;
+            currentInput = (-value).toString();
+            updateDisplay();
+        }
+
+        function computeLog() {
+            const value = parseFloat(currentInput);
+            if (isNaN(value)) return;
+            currentInput = Math.log10(value).toString();
+            updateDisplay();
+        }
+
+        function computeSine() {
+            const value = parseFloat(currentInput);
+            if (isNaN(value)) return;
+            currentInput = Math.sin(value).toString();
+            updateDisplay();
+        }
+    </script>
+
+</body>
+</html>
